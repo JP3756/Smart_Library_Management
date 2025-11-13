@@ -2,7 +2,7 @@ import axios from 'axios';
 
 // Axios instance with base configuration
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:5000/api',
+  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:5208/api',
   headers: {
     'Content-Type': 'application/json',
   },
@@ -280,147 +280,77 @@ export const authAPI = {
 // Books
 export const booksAPI = {
   getAll: async (params) => {
-    // Mock API call - replace with: api.get('/books', { params })
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        let filtered = [...mockBooks];
-        
-        if (params?.search) {
-          const search = params.search.toLowerCase();
-          filtered = filtered.filter(
-            (book) =>
-              book.title.toLowerCase().includes(search) ||
-              book.author.toLowerCase().includes(search) ||
-              book.isbn.includes(search)
-          );
-        }
-        
-        if (params?.category && params.category !== 'All') {
-          filtered = filtered.filter((book) => book.category === params.category);
-        }
-        
-        if (params?.status && params.status !== 'All') {
-          filtered = filtered.filter((book) => book.status === params.status);
-        }
-        
-        resolve({ data: filtered });
-      }, 500);
-    });
+    const queryParams = new URLSearchParams();
+    if (params?.search) queryParams.append('search', params.search);
+    if (params?.category && params.category !== 'All') queryParams.append('category', params.category);
+    if (params?.status && params.status !== 'All') queryParams.append('status', params.status);
+    
+    const url = queryParams.toString() ? `/books?${queryParams}` : '/books';
+    return api.get(url);
   },
   getById: async (id) => {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        const book = mockBooks.find((b) => b.id === parseInt(id));
-        resolve({ data: book });
-      }, 300);
-    });
+    return api.get(`/books/${id}`);
   },
   create: async (bookData) => {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        const newBook = { id: mockBooks.length + 1, ...bookData };
-        resolve({ data: newBook });
-      }, 500);
-    });
+    return api.post('/books', bookData);
   },
   update: async (id, bookData) => {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        resolve({ data: { id, ...bookData } });
-      }, 500);
-    });
+    return api.put(`/books/${id}`, bookData);
   },
   delete: async (id) => {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        resolve({ data: { success: true } });
-      }, 500);
-    });
+    return api.delete(`/books/${id}`);
   },
 };
 
 // Users
 export const usersAPI = {
   getAll: async (params) => {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        let filtered = [...mockUsers];
-        
-        if (params?.search) {
-          const search = params.search.toLowerCase();
-          filtered = filtered.filter(
-            (user) =>
-              user.name.toLowerCase().includes(search) ||
-              user.email.toLowerCase().includes(search) ||
-              user.membershipId.toLowerCase().includes(search)
-          );
-        }
-        
-        if (params?.role && params.role !== 'All') {
-          filtered = filtered.filter((user) => user.role === params.role);
-        }
-        
-        resolve({ data: filtered });
-      }, 500);
-    });
+    const queryParams = new URLSearchParams();
+    if (params?.search) queryParams.append('search', params.search);
+    if (params?.role && params.role !== 'All') queryParams.append('type', params.role);
+    
+    const url = queryParams.toString() ? `/users?${queryParams}` : '/users';
+    return api.get(url);
   },
   getById: async (id) => {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        const user = mockUsers.find((u) => u.id === parseInt(id));
-        resolve({ data: user });
-      }, 300);
-    });
+    return api.get(`/users/${id}`);
   },
   create: async (userData) => {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        const newUser = { id: mockUsers.length + 1, ...userData };
-        resolve({ data: newUser });
-      }, 500);
-    });
+    // Map frontend fields to backend DTO
+    const createDto = {
+      name: userData.name,
+      email: userData.email,
+      type: userData.role, // Backend expects "type" (Student/Faculty)
+      studentId: userData.role === 'Student' ? userData.membershipId : null,
+      employeeId: userData.role === 'Faculty' ? userData.membershipId : null,
+    };
+    return api.post('/users', createDto);
   },
 };
 
 // Borrow/Return
 export const borrowAPI = {
   getAll: async () => {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        resolve({ data: mockBorrowRecords });
-      }, 500);
-    });
+    return api.get('/loans');
   },
   borrowBook: async (data) => {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        const newRecord = {
-          id: mockBorrowRecords.length + 1,
-          ...data,
-          status: 'Active',
-          fine: 0,
-        };
-        resolve({ data: newRecord });
-      }, 500);
-    });
+    // Map to backend CreateLoanDto
+    const createDto = {
+      bookId: data.bookId,
+      userId: data.userId,
+      dueDate: data.dueDate,
+    };
+    return api.post('/loans', createDto);
   },
   returnBook: async (id) => {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        resolve({ data: { success: true } });
-      }, 500);
-    });
+    return api.post(`/loans/${id}/return`);
   },
 };
 
 // Reports
 export const reportsAPI = {
   getStats: async () => {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        resolve({ data: mockReportStats });
-      }, 500);
-    });
+    return api.get('/reports/statistics');
   },
 };
 

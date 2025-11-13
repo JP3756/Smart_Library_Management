@@ -42,6 +42,21 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
+// Seed the database with initial data
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    try
+    {
+        var context = services.GetRequiredService<LibraryDbContext>();
+        DatabaseSeeder.SeedDatabase(context);
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"❌ Error seeding database: {ex.Message}");
+    }
+}
+
 // Configure the HTTP request pipeline
 if (app.Environment.IsDevelopment())
 {
