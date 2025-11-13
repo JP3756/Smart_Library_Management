@@ -29,15 +29,14 @@ builder.Services.AddScoped<ILoanService, LoanService>();
 // Register Factories (FACTORY PATTERN)
 builder.Services.AddScoped<IUserFactory, UserFactory>();
 
-// Configure CORS for frontend integration
+// Configure CORS for frontend integration and Swagger
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowFrontend", policy =>
+    options.AddPolicy("AllowAll", policy =>
     {
-        policy.WithOrigins("http://localhost:5173", "http://localhost:3000")
+        policy.AllowAnyOrigin()
               .AllowAnyHeader()
-              .AllowAnyMethod()
-              .AllowCredentials();
+              .AllowAnyMethod();
     });
 });
 
@@ -52,8 +51,8 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-// Enable CORS
-app.UseCors("AllowFrontend");
+// Enable CORS (must be before Authorization)
+app.UseCors("AllowAll");
 
 app.UseAuthorization();
 
