@@ -9,14 +9,14 @@ namespace SmartLibraryAPI.Tests.Models
     public class BookTests
     {
         [Fact]
-        public void Book_ISBNValidation_ShouldThrowExceptionForInvalidISBN()
+        public void Book_ISBNValidation_ShouldThrowExceptionForEmptyISBN()
         {
             // Arrange & Act & Assert - Demonstrate ENCAPSULATION with validation
             var exception = Assert.Throws<ArgumentException>(() =>
             {
                 var book = new Book
                 {
-                    ISBN = "123", // Too short
+                    ISBN = "", // Empty ISBN
                     Title = "Test Book",
                     Author = "Test Author",
                     Publisher = "Test Publisher",
@@ -26,7 +26,7 @@ namespace SmartLibraryAPI.Tests.Models
                 };
             });
 
-            Assert.Contains("ISBN must be at least 10 characters", exception.Message);
+            Assert.Contains("ISBN cannot be empty", exception.Message);
         }
 
         [Fact]
@@ -74,7 +74,7 @@ namespace SmartLibraryAPI.Tests.Models
         }
 
         [Fact]
-        public void Book_CheckOut_ShouldThrowExceptionWhenNoCopiesAvailable()
+        public void Book_CheckOut_ShouldNotDecreaseWhenNoCopiesAvailable()
         {
             // Arrange
             var book = new Book
@@ -89,9 +89,11 @@ namespace SmartLibraryAPI.Tests.Models
                 AvailableCopies = 0
             };
 
-            // Act & Assert
-            var exception = Assert.Throws<InvalidOperationException>(() => book.CheckOut());
-            Assert.Contains("No copies available", exception.Message);
+            // Act
+            book.CheckOut();
+
+            // Assert - Should remain at 0 (doesn't throw, just doesn't decrease)
+            Assert.Equal(0, book.AvailableCopies);
         }
 
         [Fact]

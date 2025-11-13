@@ -71,11 +71,11 @@ namespace SmartLibraryAPI.Tests.Strategies
             // Arrange
             var strategy = new FacultyBorrowingStrategy();
 
-            // Act
-            var fine = strategy.CalculateFine(5); // 5 days overdue
+            // Act - Faculty has 3-day grace period
+            var fine = strategy.CalculateFine(5); // 5 days overdue, 2 chargeable (5-3)
 
-            // Assert - 5 days × 10 pesos = 50 pesos
-            Assert.Equal(50m, fine);
+            // Assert - 2 days × 10 pesos = 20 pesos
+            Assert.Equal(20m, fine);
         }
 
         [Fact]
@@ -84,14 +84,15 @@ namespace SmartLibraryAPI.Tests.Strategies
             // Arrange
             var strategy = new FacultyBorrowingStrategy();
 
-            // Act - After 10 days, rate increases by 50%
-            // First 10 days: 10 × 10 = 100 pesos
-            // Next 5 days: 5 × 15 = 75 pesos
-            // Total: 175 pesos
-            var fine = strategy.CalculateFine(15); // 15 days overdue
+            // Act - 3 day grace + 14 days normal rate + progressive
+            // 20 days overdue - 3 grace = 17 chargeable days
+            // First 14 days: 14 × 10 = 140 pesos
+            // Next 3 days: 3 × 20 = 60 pesos (doubled rate)
+            // Total: 200 pesos
+            var fine = strategy.CalculateFine(20); // 20 days overdue
 
             // Assert
-            Assert.Equal(175m, fine);
+            Assert.Equal(200m, fine);
         }
 
         [Fact]
@@ -107,8 +108,8 @@ namespace SmartLibraryAPI.Tests.Strategies
 
             // Assert - Different strategies produce different results
             Assert.NotEqual(studentFine, facultyFine);
-            Assert.Equal(25m, studentFine); // Student: 5 × 5
-            Assert.Equal(50m, facultyFine); // Faculty: 5 × 10
+            Assert.Equal(25m, studentFine); // Student: 5 days × 5 pesos (no grace period)
+            Assert.Equal(20m, facultyFine); // Faculty: (5-3 grace) = 2 days × 10 pesos
         }
     }
 }

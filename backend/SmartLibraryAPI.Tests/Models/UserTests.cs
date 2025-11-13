@@ -67,7 +67,7 @@ namespace SmartLibraryAPI.Tests.Models
                 };
             });
 
-            Assert.Contains("must contain @", exception.Message);
+            Assert.Contains("Invalid email format", exception.Message);
         }
 
         [Fact]

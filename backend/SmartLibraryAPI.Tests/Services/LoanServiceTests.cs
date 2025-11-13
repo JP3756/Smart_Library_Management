@@ -142,12 +142,26 @@ namespace SmartLibraryAPI.Tests.Services
                 Department = "CCS"
             };
 
+            var book = new Book
+            {
+                Id = 1,
+                ISBN = "978-0-13-468599-1",
+                Title = "Test Book",
+                Author = "Test Author",
+                Publisher = "Test Publisher",
+                PublicationYear = 2020,
+                Category = "Fiction",
+                TotalCopies = 5,
+                AvailableCopies = 5
+            };
+
             mockUserRepo.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(student);
+            mockBookRepo.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(book);
 
             var context = GetInMemoryDbContext();
             var loanService = new LoanService(context, mockBookRepo.Object, mockUserRepo.Object);
 
-            // Act & Assert
+            // Act & Assert - Should throw InvalidOperationException for inactive user
             await Assert.ThrowsAsync<InvalidOperationException>(() =>
                 loanService.BorrowBookAsync(1, 1)
             );
@@ -168,17 +182,20 @@ namespace SmartLibraryAPI.Tests.Services
                 IsActive = true,
                 Program = "CS",
                 YearLevel = 1,
-                Department = "CCS",
-                Loans = new List<Loan>
-                {
-                    new Loan { Status = LoanStatus.Active },
-                    new Loan { Status = LoanStatus.Active }
-                }
+                Department = "CCS"
             };
 
-            mockUserRepo.Setup(r => r.GetUserWithLoansAsync(1)).ReturnsAsync(student);
+            mockUserRepo.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(student);
 
             var context = GetInMemoryDbContext();
+            
+            // Add 2 active loans to the in-memory database
+            context.Loans.AddRange(
+                new Loan { UserId = 1, BookId = 1, Status = LoanStatus.Active, BorrowDate = DateTime.UtcNow, DueDate = DateTime.UtcNow.AddDays(14) },
+                new Loan { UserId = 1, BookId = 2, Status = LoanStatus.Active, BorrowDate = DateTime.UtcNow, DueDate = DateTime.UtcNow.AddDays(14) }
+            );
+            await context.SaveChangesAsync();
+
             var loanService = new LoanService(context, mockBookRepo.Object, mockUserRepo.Object);
 
             // Act
@@ -203,18 +220,21 @@ namespace SmartLibraryAPI.Tests.Services
                 IsActive = true,
                 Program = "CS",
                 YearLevel = 1,
-                Department = "CCS",
-                Loans = new List<Loan>
-                {
-                    new Loan { Status = LoanStatus.Active },
-                    new Loan { Status = LoanStatus.Active },
-                    new Loan { Status = LoanStatus.Active }
-                }
+                Department = "CCS"
             };
 
-            mockUserRepo.Setup(r => r.GetUserWithLoansAsync(1)).ReturnsAsync(student);
+            mockUserRepo.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(student);
 
             var context = GetInMemoryDbContext();
+            
+            // Add 3 active loans to the in-memory database (at limit for students)
+            context.Loans.AddRange(
+                new Loan { UserId = 1, BookId = 1, Status = LoanStatus.Active, BorrowDate = DateTime.UtcNow, DueDate = DateTime.UtcNow.AddDays(14) },
+                new Loan { UserId = 1, BookId = 2, Status = LoanStatus.Active, BorrowDate = DateTime.UtcNow, DueDate = DateTime.UtcNow.AddDays(14) },
+                new Loan { UserId = 1, BookId = 3, Status = LoanStatus.Active, BorrowDate = DateTime.UtcNow, DueDate = DateTime.UtcNow.AddDays(14) }
+            );
+            await context.SaveChangesAsync();
+
             var loanService = new LoanService(context, mockBookRepo.Object, mockUserRepo.Object);
 
             // Act

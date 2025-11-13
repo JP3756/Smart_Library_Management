@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("SmartLibraryAPI")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+49ac7cd1f9dcbe7410317e36c6f5925442fc8154")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+27d9a7bddcaa0be9a7af3cebcfdb9f93a48683e3")]
 [assembly: System.Reflection.AssemblyProductAttribute("SmartLibraryAPI")]
 [assembly: System.Reflection.AssemblyTitleAttribute("SmartLibraryAPI")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
