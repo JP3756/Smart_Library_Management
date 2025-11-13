@@ -12,11 +12,11 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-// Configure MySQL Database with Entity Framework Core
+// Configure PostgreSQL Database with Entity Framework Core
 // Note: Update connection string in appsettings.json
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 builder.Services.AddDbContext<LibraryDbContext>(options =>
-    options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString)));
+    options.UseNpgsql(connectionString));
 
 // Register Repositories (REPOSITORY PATTERN - Dependency Injection)
 builder.Services.AddScoped<IBookRepository, BookRepository>();

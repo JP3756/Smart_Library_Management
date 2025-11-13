@@ -158,7 +158,16 @@ SmartLibraryAPI/
     └── ReportsController.cs
 ```
 
-## 🚀 Features
+## �️ Tech Stack
+
+- **C# with ASP.NET Core Web API** (.NET 9)
+- **PostgreSQL** database
+- **Entity Framework Core** (ORM)
+- **Npgsql** (PostgreSQL provider)
+- **Swagger/OpenAPI** (API documentation)
+- **Dependency Injection** (built-in)
+
+## �🚀 Features
 
 ### Core Functionality
 - ✅ **Book Management**: Add, update, delete, search books
@@ -182,14 +191,14 @@ SmartLibraryAPI/
 
 ## 🗄️ Database Setup
 
-### 1. Install MySQL
-Download and install MySQL Server from [mysql.com](https://dev.mysql.com/downloads/)
+### 1. Install PostgreSQL
+Download and install PostgreSQL from [postgresql.org](https://www.postgresql.org/download/)
 
 ### 2. Update Connection String
 Edit `appsettings.json`:
 ```json
 "ConnectionStrings": {
-  "DefaultConnection": "Server=localhost;Database=SmartLibraryDB;User=root;Password=YOUR_PASSWORD;"
+  "DefaultConnection": "Host=localhost;Database=SmartLibraryDB;Username=postgres;Password=YOUR_PASSWORD"
 }
 ```
 
