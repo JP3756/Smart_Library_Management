@@ -130,47 +130,6 @@ namespace SmartLibraryAPI.Data
                 entity.Property(e => e.Code).IsRequired().HasMaxLength(20);
                 entity.HasIndex(e => e.Code).IsUnique();
             });
-
-            // Seed initial data
-            SeedData(modelBuilder);
-        }
-
-        private void SeedData(ModelBuilder modelBuilder)
-        {
-            // Seed some initial books
-            modelBuilder.Entity<Book>().HasData(
-                new Book
-                {
-                    Id = 1,
-                    ISBN = "978-0-7475-3269-9",
-                    Title = "Harry Potter and the Philosopher's Stone",
-                    Author = "J.K. Rowling",
-                    Publisher = "Bloomsbury",
-                    PublicationYear = 1997,
-                    Category = "Fiction",
-                    TotalCopies = 5,
-                    AvailableCopies = 5
-                },
-                new Book
-                {
-                    Id = 2,
-                    ISBN = "978-0-06-112008-4",
-                    Title = "To Kill a Mockingbird",
-                    Author = "Harper Lee",
-                    Publisher = "HarperCollins",
-                    PublicationYear = 1960,
-                    Category = "Fiction",
-                    TotalCopies = 3,
-                    AvailableCopies = 3
-                }
-            );
-
-            // Seed catalogs
-            modelBuilder.Entity<Catalog>().HasData(
-                new Catalog { Id = 1, Name = "Fiction", Code = "FIC", Description = "Fiction books" },
-                new Catalog { Id = 2, Name = "Non-Fiction", Code = "NFIC", Description = "Non-fiction books" },
-                new Catalog { Id = 3, Name = "Reference", Code = "REF", Description = "Reference materials" }
-            );
         }
     }
 }
