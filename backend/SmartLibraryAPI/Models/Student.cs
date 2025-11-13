@@ -5,7 +5,7 @@ namespace SmartLibraryAPI.Models
     /// </summary>
     public class Student : User
     {
-        private string _studentId;
+        private string _studentId = string.Empty;
 
         public string StudentId
         {

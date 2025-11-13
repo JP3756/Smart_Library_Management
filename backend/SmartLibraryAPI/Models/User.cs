@@ -7,8 +7,8 @@ namespace SmartLibraryAPI.Models
     public abstract class User
     {
         // Encapsulation: Private fields with public properties
-        private string _email;
-        private string _name;
+        private string _email = string.Empty;
+        private string _name = string.Empty;
 
         public int Id { get; set; }
 

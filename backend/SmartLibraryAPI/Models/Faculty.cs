@@ -5,7 +5,7 @@ namespace SmartLibraryAPI.Models
     /// </summary>
     public class Faculty : User
     {
-        private string _employeeId;
+        private string _employeeId = string.Empty;
 
         public string EmployeeId
         {
