@@ -1,0 +1,80 @@
+{
+  "hash": "75ffd692",
+  "configHash": "00a095e0",
+  "lockfileHash": "4327957a",
+  "browserHash": "c642a70e",
+  "optimized": {
+    "@tanstack/react-query": {
+      "src": "../../node_modules/@tanstack/react-query/build/modern/index.js",
+      "file": "@tanstack_react-query.js",
+      "fileHash": "5df47486",
+      "needsInterop": false
+    },
+    "axios": {
+      "src": "../../node_modules/axios/index.js",
+      "file": "axios.js",
+      "fileHash": "6a6d9572",
+      "needsInterop": false
+    },
+    "framer-motion": {
+      "src": "../../node_modules/framer-motion/dist/es/index.mjs",
+      "file": "framer-motion.js",
+      "fileHash": "5ba5452e",
+      "needsInterop": false
+    },
+    "lucide-react": {
+      "src": "../../node_modules/lucide-react/dist/esm/lucide-react.js",
+      "file": "lucide-react.js",
+      "fileHash": "7a59f8da",
+      "needsInterop": false
+    },
+    "react-dom/client": {
+      "src": "../../node_modules/react-dom/client.js",
+      "file": "react-dom_client.js",
+      "fileHash": "98b18b39",
+      "needsInterop": true
+    },
+    "react-hot-toast": {
+      "src": "../../node_modules/react-hot-toast/dist/index.mjs",
+      "file": "react-hot-toast.js",
+      "fileHash": "82a0a69b",
+      "needsInterop": false
+    },
+    "react-router-dom": {
+      "src": "../../node_modules/react-router-dom/dist/index.mjs",
+      "file": "react-router-dom.js",
+      "fileHash": "b97522c1",
+      "needsInterop": false
+    },
+    "react": {
+      "src": "../../node_modules/react/index.js",
+      "file": "react.js",
+      "fileHash": "88419125",
+      "needsInterop": true
+    },
+    "react/jsx-dev-runtime": {
+      "src": "../../node_modules/react/jsx-dev-runtime.js",
+      "file": "react_jsx-dev-runtime.js",
+      "fileHash": "b7e473ce",
+      "needsInterop": true
+    }
+  },
+  "chunks": {
+    "chunk-DbKvDyjX": {
+      "file": "chunk-DbKvDyjX.js",
+      "isDynamicEntry": false
+    },
+    "jsx-runtime-3fzipINL": {
+      "file": "jsx-runtime-3fzipINL.js",
+      "isDynamicEntry": false
+    },
+    "react-Dzmm40ca": {
+      "file": "react-Dzmm40ca.js",
+      "isDynamicEntry": false
+    },
+    "react-dom-DMiczgDw": {
+      "file": "react-dom-DMiczgDw.js",
+      "isDynamicEntry": false
+    }
+  }
+}
