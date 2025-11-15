@@ -20,6 +20,7 @@ export default function Books() {
     category: '',
     publishedYear: '',
     totalCopies: 1,
+    publisher: '',
   });
 
   const { data: books, isLoading, refetch } = useQuery({
@@ -35,13 +36,24 @@ export default function Books() {
     e.preventDefault();
     
     try {
-      await booksAPI.create(newBook);
+      // Map frontend fields to backend DTO
+      const bookData = {
+        isbn: newBook.isbn,
+        title: newBook.title,
+        author: newBook.author,
+        category: newBook.category,
+        publicationYear: parseInt(newBook.publishedYear) || new Date().getFullYear(),
+        totalCopies: parseInt(newBook.totalCopies) || 1,
+        publisher: newBook.publisher || '',
+      };
+      
+      await booksAPI.create(bookData);
       toast.success('Book added successfully!');
       setIsAddModalOpen(false);
       setNewBook({ title: '', author: '', isbn: '', category: '', publishedYear: '', totalCopies: 1 });
       refetch();
     } catch (error) {
-      toast.error('Failed to add book');
+      toast.error(error.response?.data?.message || 'Failed to add book');
     }
   };
 

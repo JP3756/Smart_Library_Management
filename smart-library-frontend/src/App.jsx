@@ -13,8 +13,15 @@ import Settings from './pages/Settings';
 function ProtectedRoute({ children }) {
   const token = localStorage.getItem('token');
   
+  // DEV MODE: Auto-login for development
   if (!token) {
-    return <Navigate to="/login" replace />;
+    localStorage.setItem('token', 'dev-token-12345');
+    localStorage.setItem('user', JSON.stringify({ 
+      id: 1, 
+      name: 'Dev Librarian', 
+      email: 'dev@library.com', 
+      role: 'Librarian' 
+    }));
   }
   
   return children;
