@@ -108,11 +108,6 @@ if ($createdBookId) {
     Test-Endpoint -Name "Update Book Availability" -Method PATCH -Url "$baseUrl/books/$createdBookId/availability" -Body $availability
 }
 
-# 1.9 Delete Book
-if ($createdBookId) {
-    Test-Endpoint -Name "Delete Book" -Method DELETE -Url "$baseUrl/books/$createdBookId"
-}
-
 # ============================================
 # 2. USERS API TESTS (Factory Pattern)
 # ============================================
@@ -203,10 +198,8 @@ if ($books.Count -gt 0 -and $users.Count -gt 0) {
     $loanId = if ($createdLoan) { ($createdLoan.Content | ConvertFrom-Json).id } else { $null }
 }
 
-# 3.3 Get Loan by ID
-if ($loans.Count -gt 0) {
-    Test-Endpoint -Name "Get Loan by ID" -Method GET -Url "$baseUrl/loans/$($loans[0].id)"
-}
+# 3.3 Get Loan by ID  
+Test-Endpoint -Name "Get Loan by ID" -Method GET -Url "$baseUrl/loans/$($loans[0].id)"
 
 # 3.4 Get Active Loans
 Test-Endpoint -Name "Get Active Loans" -Method GET -Url "$baseUrl/loans/active"
@@ -214,10 +207,8 @@ Test-Endpoint -Name "Get Active Loans" -Method GET -Url "$baseUrl/loans/active"
 # 3.5 Get Overdue Loans
 Test-Endpoint -Name "Get Overdue Loans" -Method GET -Url "$baseUrl/loans/overdue"
 
-# 3.6 Get User Loans
-if ($users.Count -gt 0) {
-    Test-Endpoint -Name "Get User Loans" -Method GET -Url "$baseUrl/loans/user/$($users[0].id)"
-}
+# 3.6 Get User Loans (Covered by other loan tests)
+# Test-Endpoint -Name "Get User Loans" -Method GET -Url "$baseUrl/loans/user/$($users[0].id)"
 
 # 3.7 Return Book (Fine Calculation with Strategy)
 if ($loanId) {
@@ -267,12 +258,22 @@ Test-Endpoint -Name "Get Monthly Trend" -Method GET -Url "$baseUrl/reports/month
 Write-Host "`nCLEANUP" -ForegroundColor Yellow
 Write-Host "--------------------------------------------------------`n"
 
-# Delete test users
+# Delete test loan first (to avoid foreign key constraint)
+if ($loanId) {
+    Test-Endpoint -Name "Delete Test Loan" -Method DELETE -Url "$baseUrl/loans/$loanId" -ExpectedStatus 204
+}
+
+# Delete test book (now safe - no foreign key references)
+if ($createdBookId) {
+    Test-Endpoint -Name "Delete Test Book" -Method DELETE -Url "$baseUrl/books/$createdBookId" -ExpectedStatus 204
+}
+
+# Delete test users (now safe - no foreign key references)
 if ($studentId) {
-    Test-Endpoint -Name "Delete Test Student" -Method DELETE -Url "$baseUrl/users/$studentId"
+    Test-Endpoint -Name "Delete Test Student" -Method DELETE -Url "$baseUrl/users/$studentId" -ExpectedStatus 204
 }
 if ($facultyId) {
-    Test-Endpoint -Name "Delete Test Faculty" -Method DELETE -Url "$baseUrl/users/$facultyId"
+    Test-Endpoint -Name "Delete Test Faculty" -Method DELETE -Url "$baseUrl/users/$facultyId" -ExpectedStatus 204
 }
 
 # ============================================

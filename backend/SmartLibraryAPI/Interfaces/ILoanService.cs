@@ -17,5 +17,6 @@ namespace SmartLibraryAPI.Interfaces
         Task<IEnumerable<Loan>> GetOverdueLoansAsync();
         Task<Fine?> CalculateFineAsync(int loanId);
         Task<bool> CanUserBorrowAsync(int userId);
+        Task<bool> DeleteLoanAsync(int id);
     }
 }

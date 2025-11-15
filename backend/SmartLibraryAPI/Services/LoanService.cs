@@ -196,6 +196,16 @@ namespace SmartLibraryAPI.Services
             return strategy.CanBorrow(user, activeLoansCount);
         }
 
+        public async Task<bool> DeleteLoanAsync(int id)
+        {
+            var loan = await _context.Loans.FindAsync(id);
+            if (loan == null) return false;
+
+            _context.Loans.Remove(loan);
+            await _context.SaveChangesAsync();
+            return true;
+        }
+
         // Helper method to get appropriate strategy (STRATEGY PATTERN)
         private IBorrowingStrategy GetBorrowingStrategy(User user)
         {

@@ -230,5 +230,16 @@ namespace SmartLibraryAPI.Controllers
                 FineAmount = loan.Fine?.Amount
             };
         }
+
+        /// <summary>
+        /// Delete loan
+        /// </summary>
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteLoan(int id)
+        {
+            var success = await _loanService.DeleteLoanAsync(id);
+            if (!success) return NotFound();
+            return NoContent();
+        }
     }
 }
