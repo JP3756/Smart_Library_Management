@@ -47,6 +47,49 @@ namespace SmartLibraryAPI.Controllers
         }
 
         /// <summary>
+        /// Search users by name or email
+        /// </summary>
+        [HttpGet("search")]
+        public async Task<ActionResult<IEnumerable<UserDto>>> Search([FromQuery] string query)
+        {
+            if (string.IsNullOrEmpty(query))
+                return BadRequest(new { message = "Query parameter is required" });
+
+            var allUsers = await _userRepository.GetAllAsync();
+            var filteredUsers = allUsers.Where(u => 
+                u.Name.Contains(query, StringComparison.OrdinalIgnoreCase) ||
+                u.Email.Contains(query, StringComparison.OrdinalIgnoreCase)
+            );
+            var userDtos = filteredUsers.Select(u => MapToDto(u));
+            return Ok(userDtos);
+        }
+
+        /// <summary>
+        /// Get users by type (Student or Faculty)
+        /// </summary>
+        [HttpGet("type/{userType}")]
+        public async Task<ActionResult<IEnumerable<UserDto>>> GetByType(string userType)
+        {
+            var allUsers = await _userRepository.GetAllAsync();
+            var filteredUsers = allUsers.Where(u => u.GetUserType().Equals(userType, StringComparison.OrdinalIgnoreCase));
+            var userDtos = filteredUsers.Select(u => MapToDto(u));
+            return Ok(userDtos);
+        }
+
+        /// <summary>
+        /// Get user borrow limit (demonstrates polymorphism)
+        /// </summary>
+        [HttpGet("{id}/borrow-limit")]
+        public async Task<ActionResult<object>> GetBorrowLimit(int id)
+        {
+            var user = await _userRepository.GetByIdAsync(id);
+            if (user == null)
+                return NotFound(new { message = $"User with ID {id} not found" });
+
+            return Ok(new { maxBorrowLimit = user.GetMaxBorrowLimit(), userType = user.GetUserType() });
+        }
+
+        /// <summary>
         /// Get all students
         /// </summary>
         [HttpGet("students")]
@@ -107,22 +150,27 @@ namespace SmartLibraryAPI.Controllers
                 if (existingUser != null)
                     return Conflict(new { message = "User with this email already exists" });
 
+                // Determine user type (support both Type and UserType fields)
+                var userType = !string.IsNullOrEmpty(createUserDto.Type) ? createUserDto.Type : createUserDto.UserType;
+                
                 // Use Factory Pattern to create user
-                var user = _userFactory.CreateUser(createUserDto.UserType, createUserDto.Name, createUserDto.Email);
+                var user = _userFactory.CreateUser(userType, createUserDto.Name, createUserDto.Email);
                 
                 // Set common properties
                 user.Phone = createUserDto.Phone;
 
                 // Set type-specific properties
-                if (user is Student student && createUserDto.UserType.ToLower() == "student")
+                if (user is Student student && userType.Equals("student", StringComparison.OrdinalIgnoreCase))
                 {
-                    student.Program = createUserDto.Program ?? "";
+                    student.StudentId = createUserDto.StudentId ?? $"STU{DateTime.UtcNow:yyyyMMddHHmmss}";
+                    student.Program = createUserDto.Program ?? "Computer Science";
                     student.YearLevel = createUserDto.YearLevel ?? 1;
-                    student.Department = createUserDto.Department ?? "";
+                    student.Department = createUserDto.Department ?? "Engineering";
                 }
-                else if (user is Faculty faculty && createUserDto.UserType.ToLower() == "faculty")
+                else if (user is Faculty faculty && userType.Equals("faculty", StringComparison.OrdinalIgnoreCase))
                 {
-                    faculty.Department = createUserDto.Department ?? "";
+                    faculty.EmployeeId = createUserDto.EmployeeId ?? $"FAC{DateTime.UtcNow:yyyyMMddHHmmss}";
+                    faculty.Department = createUserDto.Department ?? "Computer Science";
                     faculty.Position = createUserDto.Position ?? "Instructor";
                     faculty.Specialization = createUserDto.Specialization ?? "";
                 }

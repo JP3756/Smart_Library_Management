@@ -44,6 +44,22 @@ namespace SmartLibraryAPI.Controllers
         }
 
         /// <summary>
+        /// Search books by query (searches title and author)
+        /// </summary>
+        [HttpGet("search")]
+        public async Task<ActionResult<IEnumerable<BookDto>>> Search([FromQuery] string query)
+        {
+            if (string.IsNullOrEmpty(query))
+                return BadRequest(new { message = "Query parameter is required" });
+
+            var booksByTitle = await _bookRepository.SearchByTitleAsync(query);
+            var booksByAuthor = await _bookRepository.SearchByAuthorAsync(query);
+            var allBooks = booksByTitle.Union(booksByAuthor).Distinct();
+            var bookDtos = allBooks.Select(b => MapToDto(b));
+            return Ok(bookDtos);
+        }
+
+        /// <summary>
         /// Search books by title
         /// </summary>
         [HttpGet("search/title/{title}")]
@@ -152,6 +168,28 @@ namespace SmartLibraryAPI.Controllers
                 if (updateBookDto.AvailableCopies.HasValue)
                     book.AvailableCopies = updateBookDto.AvailableCopies.Value;
 
+                var updatedBook = await _bookRepository.UpdateAsync(book);
+                return Ok(MapToDto(updatedBook));
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// Update book availability (PATCH)
+        /// </summary>
+        [HttpPatch("{id}/availability")]
+        public async Task<ActionResult<BookDto>> UpdateAvailability(int id, [FromBody] UpdateAvailabilityDto dto)
+        {
+            try
+            {
+                var book = await _bookRepository.GetByIdAsync(id);
+                if (book == null)
+                    return NotFound(new { message = $"Book with ID {id} not found" });
+
+                book.AvailableCopies = dto.AvailableCopies;
                 var updatedBook = await _bookRepository.UpdateAsync(book);
                 return Ok(MapToDto(updatedBook));
             }

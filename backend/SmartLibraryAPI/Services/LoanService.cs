@@ -27,6 +27,22 @@ namespace SmartLibraryAPI.Services
             _userRepository = userRepository;
         }
 
+        public async Task<IEnumerable<Loan>> GetAllLoansAsync()
+        {
+            return await _context.Loans
+                .Include(l => l.User)
+                .Include(l => l.Book)
+                .ToListAsync();
+        }
+
+        public async Task<Loan?> GetLoanByIdAsync(int id)
+        {
+            return await _context.Loans
+                .Include(l => l.User)
+                .Include(l => l.Book)
+                .FirstOrDefaultAsync(l => l.Id == id);
+        }
+
         public async Task<Loan> BorrowBookAsync(int userId, int bookId)
         {
             // Get user and book

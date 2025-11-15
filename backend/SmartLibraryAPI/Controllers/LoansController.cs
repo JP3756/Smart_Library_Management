@@ -27,6 +27,30 @@ namespace SmartLibraryAPI.Controllers
         }
 
         /// <summary>
+        /// Get all loans
+        /// </summary>
+        [HttpGet]
+        public async Task<ActionResult<IEnumerable<LoanDto>>> GetAllLoans()
+        {
+            var loans = await _loanService.GetAllLoansAsync();
+            var loanDtos = await Task.WhenAll(loans.Select(l => MapToDtoAsync(l)));
+            return Ok(loanDtos);
+        }
+
+        /// <summary>
+        /// Get loan by ID
+        /// </summary>
+        [HttpGet("{id}")]
+        public async Task<ActionResult<LoanDto>> GetLoan(int id)
+        {
+            var loan = await _loanService.GetLoanByIdAsync(id);
+            if (loan == null)
+                return NotFound(new { message = $"Loan with ID {id} not found" });
+
+            return Ok(await MapToDtoAsync(loan));
+        }
+
+        /// <summary>
         /// Get all active loans
         /// </summary>
         [HttpGet("active")]
@@ -57,6 +81,28 @@ namespace SmartLibraryAPI.Controllers
             var loans = await _loanService.GetUserLoansAsync(userId);
             var loanDtos = await Task.WhenAll(loans.Select(l => MapToDtoAsync(l)));
             return Ok(loanDtos);
+        }
+
+        /// <summary>
+        /// Create new loan (Borrow book) - Alternative endpoint
+        /// </summary>
+        [HttpPost]
+        public async Task<ActionResult<LoanDto>> CreateLoan(CreateLoanDto createLoanDto)
+        {
+            try
+            {
+                var loan = await _loanService.BorrowBookAsync(createLoanDto.UserId, createLoanDto.BookId);
+                var loanDto = await MapToDtoAsync(loan);
+                return CreatedAtAction(nameof(GetLoan), new { id = loan.Id }, loanDto);
+            }
+            catch (ArgumentException ex)
+            {
+                return NotFound(new { message = ex.Message });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
         }
 
         /// <summary>

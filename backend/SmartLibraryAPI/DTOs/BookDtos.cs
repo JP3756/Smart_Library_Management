@@ -38,4 +38,9 @@ namespace SmartLibraryAPI.DTOs
         public int? TotalCopies { get; set; }
         public int? AvailableCopies { get; set; }
     }
+
+    public class UpdateAvailabilityDto
+    {
+        public int AvailableCopies { get; set; }
+    }
 }

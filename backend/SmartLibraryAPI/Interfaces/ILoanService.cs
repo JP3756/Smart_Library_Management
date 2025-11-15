@@ -8,6 +8,8 @@ namespace SmartLibraryAPI.Interfaces
     /// </summary>
     public interface ILoanService
     {
+        Task<IEnumerable<Loan>> GetAllLoansAsync();
+        Task<Loan?> GetLoanByIdAsync(int id);
         Task<Loan> BorrowBookAsync(int userId, int bookId);
         Task<Loan> ReturnBookAsync(int loanId);
         Task<IEnumerable<Loan>> GetUserLoansAsync(int userId);
