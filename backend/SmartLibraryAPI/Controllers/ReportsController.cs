@@ -58,19 +58,22 @@ namespace SmartLibraryAPI.Controllers
             var overdue = await _context.Loans.CountAsync(l => l.Status == LoanStatus.Overdue || 
                 (l.Status == LoanStatus.Active && l.DueDate < DateTime.UtcNow));
 
-            // Top borrowers
-            var topBorrowers = await _context.Loans
+            // Top borrowers - Load data first, then call GetUserType() in memory
+            var loansByUser = await _context.Loans
                 .Include(l => l.User)
-                .GroupBy(l => new { l.UserId, l.User.Name, UserType = l.User.GetUserType() })
+                .ToListAsync();
+            
+            var topBorrowers = loansByUser
+                .GroupBy(l => new { l.UserId, l.User.Name })
                 .Select(g => new TopBorrowerDto
                 {
                     UserName = g.Key.Name,
-                    UserType = g.Key.UserType,
+                    UserType = g.First().User.GetUserType(),
                     BorrowCount = g.Count()
                 })
                 .OrderByDescending(x => x.BorrowCount)
                 .Take(10)
-                .ToListAsync();
+                .ToList();
 
             // Popular books
             var popularBooks = await _context.Loans
