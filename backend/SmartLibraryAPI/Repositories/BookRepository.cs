@@ -67,14 +67,15 @@ namespace SmartLibraryAPI.Repositories
         public async Task<IEnumerable<Book>> SearchByTitleAsync(string title)
         {
             return await _context.Books
-                .Where(b => b.Title.Contains(title))
+                .Where(b => EF.Functions.ILike(b.Title, $"%{title}%") ||
+                            EF.Functions.ILike(b.ISBN, $"%{title}%"))
                 .ToListAsync();
         }
 
         public async Task<IEnumerable<Book>> SearchByAuthorAsync(string author)
         {
             return await _context.Books
-                .Where(b => b.Author.Contains(author))
+                .Where(b => EF.Functions.ILike(b.Author, $"%{author}%"))
                 .ToListAsync();
         }
 

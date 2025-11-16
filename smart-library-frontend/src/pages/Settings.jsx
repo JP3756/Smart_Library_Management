@@ -2,18 +2,17 @@ import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { User, Mail, Save, Moon, Sun, Bell } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
+import { useAuth } from '../contexts/AuthContext';
 import Button from '../components/Button';
 import toast from 'react-hot-toast';
 
 export default function Settings() {
   const { theme, toggleTheme } = useTheme();
-  const [userData, setUserData] = useState(() => {
-    const user = JSON.parse(localStorage.getItem('user') || '{}');
-    return {
-      name: user.name || '',
-      email: user.email || '',
-      role: user.role || '',
-    };
+  const { user, updateUser } = useAuth();
+  const [userData, setUserData] = useState({
+    name: user?.name || '',
+    email: user?.email || '',
+    role: user?.role || '',
   });
 
   const [preferences, setPreferences] = useState({
@@ -26,9 +25,9 @@ export default function Settings() {
   const handleSaveProfile = (e) => {
     e.preventDefault();
     
-    // Update user in localStorage
-    const updatedUser = { ...JSON.parse(localStorage.getItem('user') || '{}'), ...userData };
-    localStorage.setItem('user', JSON.stringify(updatedUser));
+    // Update user in context and localStorage
+    const updatedUser = { ...user, ...userData };
+    updateUser(updatedUser);
     
     toast.success('Profile updated successfully!');
   };

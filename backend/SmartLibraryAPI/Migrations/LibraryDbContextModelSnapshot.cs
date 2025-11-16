@@ -248,8 +248,8 @@ namespace SmartLibraryAPI.Migrations
 
                     b.Property<string>("UserType")
                         .IsRequired()
-                        .HasMaxLength(8)
-                        .HasColumnType("character varying(8)");
+                        .HasMaxLength(13)
+                        .HasColumnType("character varying(13)");
 
                     b.HasKey("Id");
 
@@ -291,9 +291,44 @@ namespace SmartLibraryAPI.Migrations
                         {
                             t.Property("Department")
                                 .HasColumnName("Faculty_Department");
+
+                            t.Property("EmployeeId")
+                                .HasColumnName("Faculty_EmployeeId");
+
+                            t.Property("Position")
+                                .HasColumnName("Faculty_Position");
                         });
 
                     b.HasDiscriminator().HasValue("Faculty");
+                });
+
+            modelBuilder.Entity("SmartLibraryAPI.Models.Librarian", b =>
+                {
+                    b.HasBaseType("SmartLibraryAPI.Models.User");
+
+                    b.Property<string>("Department")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("EmployeeId")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<string>("Position")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasIndex("EmployeeId")
+                        .IsUnique();
+
+                    b.ToTable("Users", t =>
+                        {
+                            t.Property("Department")
+                                .HasColumnName("Librarian_Department");
+                        });
+
+                    b.HasDiscriminator().HasValue("Librarian");
                 });
 
             modelBuilder.Entity("SmartLibraryAPI.Models.Student", b =>

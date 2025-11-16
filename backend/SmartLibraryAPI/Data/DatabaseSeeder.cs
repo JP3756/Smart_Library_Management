@@ -6,14 +6,13 @@ public static class DatabaseSeeder
 {
     public static void SeedDatabase(LibraryDbContext context)
     {
-        // Only seed if database is empty
-        if (context.Books.Any() && context.Books.Count() >= 10)
-            return;
+        // Ensure database is created
+        context.Database.EnsureCreated();
         
-        // Clear existing data for fresh seed
-        if (context.Books.Any())
+        // Check if already seeded
+        if (context.Books.Any() && context.Books.Count() >= 10)
         {
-            Console.WriteLine("⚠️  Database already has data. Skipping seed...");
+            Console.WriteLine("✅ Database already seeded");
             return;
         }
 
@@ -38,14 +37,20 @@ public static class DatabaseSeeder
         context.SaveChanges();
         Console.WriteLine($"✅ Seeded {books.Count} books");
 
-        // Seed Users (Students and Faculty)
+        // Seed Users (Librarian, Students and Faculty)
         var users = new List<User>
         {
+            // Librarian (Admin)
+            new Librarian { Name = "Sarah Johnson", Email = "admin@library.edu", EmployeeId = "LIB2023001", Phone = "09161234567", IsActive = true, Department = "Library Administration", Position = "Head Librarian" },
+            
+            // Students
             new Student { Name = "Juan Dela Cruz", Email = "juan.delacruz@student.edu", StudentId = "STU2024001", Phone = "09171234567", IsActive = true },
             new Student { Name = "Maria Santos", Email = "maria.santos@student.edu", StudentId = "STU2024002", Phone = "09181234567", IsActive = true },
             new Student { Name = "Pedro Reyes", Email = "pedro.reyes@student.edu", StudentId = "STU2024003", Phone = "09191234567", IsActive = true },
             new Student { Name = "Ana Garcia", Email = "ana.garcia@student.edu", StudentId = "STU2024004", Phone = "09201234567", IsActive = true },
             new Student { Name = "Carlos Mendoza", Email = "carlos.mendoza@student.edu", StudentId = "STU2024005", Phone = "09211234567", IsActive = true },
+            
+            // Faculty
             new Faculty { Name = "Dr. Roberto Cruz", Email = "roberto.cruz@faculty.edu", EmployeeId = "FAC2023001", Phone = "09221234567", IsActive = true, Department = "Computer Science" },
             new Faculty { Name = "Prof. Elena Rodriguez", Email = "elena.rodriguez@faculty.edu", EmployeeId = "FAC2023002", Phone = "09231234567", IsActive = true, Department = "Information Technology" },
             new Faculty { Name = "Dr. Miguel Santos", Email = "miguel.santos@faculty.edu", EmployeeId = "FAC2023003", Phone = "09241234567", IsActive = true, Department = "Software Engineering" },
@@ -53,7 +58,7 @@ public static class DatabaseSeeder
 
         context.Users.AddRange(users);
         context.SaveChanges();
-        Console.WriteLine($"✅ Seeded {users.Count} users (5 students, 3 faculty)");
+        Console.WriteLine($"✅ Seeded {users.Count} users (1 librarian, 5 students, 3 faculty)");
 
         // Get persisted books and users
         var persistedBooks = context.Books.ToList();

@@ -7,7 +7,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace SmartLibraryAPI.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialCreate : Migration
+    public partial class AddLibrarianRole : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -62,11 +62,14 @@ namespace SmartLibraryAPI.Migrations
                     Phone = table.Column<string>(type: "text", nullable: true),
                     DateRegistered = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     IsActive = table.Column<bool>(type: "boolean", nullable: false),
-                    UserType = table.Column<string>(type: "character varying(8)", maxLength: 8, nullable: false),
-                    EmployeeId = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: true),
+                    UserType = table.Column<string>(type: "character varying(13)", maxLength: 13, nullable: false),
+                    Faculty_EmployeeId = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: true),
                     Faculty_Department = table.Column<string>(type: "text", nullable: true),
-                    Position = table.Column<string>(type: "text", nullable: true),
+                    Faculty_Position = table.Column<string>(type: "text", nullable: true),
                     Specialization = table.Column<string>(type: "text", nullable: true),
+                    EmployeeId = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: true),
+                    Librarian_Department = table.Column<string>(type: "text", nullable: true),
+                    Position = table.Column<string>(type: "text", nullable: true),
                     StudentId = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: true),
                     Program = table.Column<string>(type: "text", nullable: true),
                     YearLevel = table.Column<int>(type: "integer", nullable: true),
@@ -209,6 +212,12 @@ namespace SmartLibraryAPI.Migrations
                 name: "IX_Users_EmployeeId",
                 table: "Users",
                 column: "EmployeeId",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Users_Faculty_EmployeeId",
+                table: "Users",
+                column: "Faculty_EmployeeId",
                 unique: true);
 
             migrationBuilder.CreateIndex(

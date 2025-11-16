@@ -19,6 +19,7 @@ namespace SmartLibraryAPI.Data
         public DbSet<User> Users { get; set; }
         public DbSet<Student> Students { get; set; }
         public DbSet<Faculty> Faculty { get; set; }
+        public DbSet<Librarian> Librarians { get; set; }
         public DbSet<Loan> Loans { get; set; }
         public DbSet<Fine> Fines { get; set; }
         public DbSet<Reservation> Reservations { get; set; }
@@ -32,7 +33,8 @@ namespace SmartLibraryAPI.Data
             modelBuilder.Entity<User>()
                 .HasDiscriminator<string>("UserType")
                 .HasValue<Student>("Student")
-                .HasValue<Faculty>("Faculty");
+                .HasValue<Faculty>("Faculty")
+                .HasValue<Librarian>("Librarian");
 
             // Configure Book entity
             modelBuilder.Entity<Book>(entity =>
@@ -62,6 +64,13 @@ namespace SmartLibraryAPI.Data
 
             // Configure Faculty entity
             modelBuilder.Entity<Faculty>(entity =>
+            {
+                entity.Property(e => e.EmployeeId).IsRequired().HasMaxLength(50);
+                entity.HasIndex(e => e.EmployeeId).IsUnique();
+            });
+
+            // Configure Librarian entity
+            modelBuilder.Entity<Librarian>(entity =>
             {
                 entity.Property(e => e.EmployeeId).IsRequired().HasMaxLength(50);
                 entity.HasIndex(e => e.EmployeeId).IsUnique();

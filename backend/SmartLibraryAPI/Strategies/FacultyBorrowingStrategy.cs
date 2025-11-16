@@ -12,6 +12,7 @@ namespace SmartLibraryAPI.Strategies
         private const int MAX_BORROW_LIMIT = 10;
         private const int MAX_BORROW_DAYS = 30;
         private const decimal DAILY_FINE_RATE = 10.00m;
+        private const int GRACE_PERIOD_DAYS = 7;
 
         public int GetMaxBorrowLimit() => MAX_BORROW_LIMIT;
 
@@ -21,8 +22,8 @@ namespace SmartLibraryAPI.Strategies
         {
             if (daysOverdue <= 0) return 0m;
             
-            // Faculty get 3 days grace period
-            int chargeableDays = Math.Max(0, daysOverdue - 3);
+            // Faculty get 7 days (1 week) grace period
+            int chargeableDays = Math.Max(0, daysOverdue - GRACE_PERIOD_DAYS);
             
             if (chargeableDays == 0) return 0m;
             

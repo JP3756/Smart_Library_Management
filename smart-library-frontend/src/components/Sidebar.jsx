@@ -1,21 +1,28 @@
 import { NavLink } from 'react-router-dom';
 import { BookOpen, Users, BookMarked, BarChart3, Settings, LogOut } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { useAuth } from '../contexts/AuthContext';
 
 const navigation = [
-  { name: 'Books', href: '/books', icon: BookOpen },
-  { name: 'Users', href: '/users', icon: Users },
-  { name: 'Borrow', href: '/borrow', icon: BookMarked },
-  { name: 'Reports', href: '/reports', icon: BarChart3 },
-  { name: 'Settings', href: '/settings', icon: Settings },
+  { name: 'Books', href: '/books', icon: BookOpen, roles: ['Librarian', 'Faculty', 'Student'] },
+  { name: 'Users', href: '/users', icon: Users, roles: ['Librarian'] },
+  { name: 'Borrow', href: '/borrow', icon: BookMarked, roles: ['Librarian', 'Faculty', 'Student'] },
+  { name: 'Reports', href: '/reports', icon: BarChart3, roles: ['Librarian', 'Faculty'] },
+  { name: 'Settings', href: '/settings', icon: Settings, roles: ['Librarian', 'Faculty', 'Student'] },
 ];
 
 export default function Sidebar() {
+  const { user, logout } = useAuth();
+
   const handleLogout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
+    logout();
     window.location.href = '/login';
   };
+
+  // Filter navigation based on user role
+  const allowedNavigation = navigation.filter((item) => 
+    item.roles.includes(user?.role)
+  );
 
   return (
     <motion.aside
@@ -34,7 +41,7 @@ export default function Sidebar() {
 
         {/* Navigation */}
         <nav className="flex-1 space-y-1 px-3 py-4">
-          {navigation.map((item) => (
+          {allowedNavigation.map((item) => (
             <NavLink
               key={item.name}
               to={item.href}

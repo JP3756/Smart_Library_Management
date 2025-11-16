@@ -2,38 +2,70 @@ import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
 import { BookMarked, Calendar, AlertCircle } from 'lucide-react';
-import { borrowAPI } from '../services/api';
+import { borrowAPI, booksAPI, usersAPI } from '../services/api';
+import { useAuth } from '../contexts/AuthContext';
 import Button from '../components/Button';
 import LoadingSpinner from '../components/LoadingSpinner';
 import Modal from '../components/Modal';
 import toast from 'react-hot-toast';
 
 export default function Borrow() {
+  const { user, isLibrarian } = useAuth();
   const [isIssueModalOpen, setIsIssueModalOpen] = useState(false);
   const [issueData, setIssueData] = useState({
-    bookTitle: '',
-    userName: '',
-    borrowDate: new Date().toISOString().split('T')[0],
-    dueDate: '',
+    bookId: '',
+    userId: '',
   });
 
   const { data: borrowRecords, isLoading, refetch } = useQuery({
     queryKey: ['borrowRecords'],
     queryFn: borrowAPI.getAll,
+    select: (response) => {
+      const records = response.data;
+      // Filter records based on user role
+      if (!isLibrarian()) {
+        // Students and Faculty see only their own records
+        return records.filter(record => record.userId === user?.id);
+      }
+      // Only Librarians see all records
+      return records;
+    },
+  });
+
+  // Fetch books for dropdown
+  const { data: books } = useQuery({
+    queryKey: ['books-for-borrow'],
+    queryFn: () => booksAPI.getAll({}),
+    select: (response) => response.data,
+  });
+
+  // Fetch users for dropdown
+  const { data: users } = useQuery({
+    queryKey: ['users-for-borrow'],
+    queryFn: () => usersAPI.getAll({}),
     select: (response) => response.data,
   });
 
   const handleIssueBook = async (e) => {
     e.preventDefault();
     
+    if (!issueData.bookId || !issueData.userId) {
+      toast.error('Please select both book and user');
+      return;
+    }
+    
     try {
-      await borrowAPI.borrowBook(issueData);
+      await borrowAPI.borrowBook({
+        bookId: parseInt(issueData.bookId),
+        userId: parseInt(issueData.userId),
+      });
       toast.success('Book issued successfully!');
       setIsIssueModalOpen(false);
-      setIssueData({ bookTitle: '', userName: '', borrowDate: new Date().toISOString().split('T')[0], dueDate: '' });
+      setIssueData({ bookId: '', userId: '' });
       refetch();
     } catch (error) {
-      toast.error('Failed to issue book');
+      const errorMsg = error.response?.data?.message || error.response?.data || 'Failed to issue book';
+      toast.error(errorMsg);
     }
   };
 
@@ -43,7 +75,8 @@ export default function Borrow() {
       toast.success('Book returned successfully!');
       refetch();
     } catch (error) {
-      toast.error('Failed to return book');
+      const errorMsg = error.response?.data?.message || 'Failed to return book';
+      toast.error(errorMsg);
     }
   };
 
@@ -65,15 +98,21 @@ export default function Borrow() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Borrow & Return</h1>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+            {isLibrarian() ? 'Borrow & Return' : 'My Borrowed Books'}
+          </h1>
           <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
-            Manage book loans and returns
+            {isLibrarian() 
+              ? 'Manage book loans and returns' 
+              : 'View your active and past book loans'}
           </p>
         </div>
-        <Button onClick={() => setIsIssueModalOpen(true)} className="flex items-center">
-          <BookMarked className="mr-2 h-4 w-4" />
-          Issue Book
-        </Button>
+        {isLibrarian() && (
+          <Button onClick={() => setIsIssueModalOpen(true)} className="flex items-center">
+            <BookMarked className="mr-2 h-4 w-4" />
+            Issue Book
+          </Button>
+        )}
       </div>
 
       {/* Stats Cards */}
@@ -224,7 +263,7 @@ export default function Borrow() {
                       ${record.fine.toFixed(2)}
                     </td>
                     <td className="whitespace-nowrap px-6 py-4 text-sm">
-                      {record.status === 'Active' || record.status === 'Overdue' ? (
+                      {isLibrarian() && (record.status === 'Active' || record.status === 'Overdue') ? (
                         <Button
                           variant="success"
                           size="sm"
@@ -253,58 +292,46 @@ export default function Borrow() {
         <form onSubmit={handleIssueBook} className="space-y-4">
           <div>
             <label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">
-              Book Title *
+              Select Book *
             </label>
-            <input
-              type="text"
+            <select
               required
-              value={issueData.bookTitle}
-              onChange={(e) => setIssueData({ ...issueData, bookTitle: e.target.value })}
-              placeholder="Enter book title"
+              value={issueData.bookId}
+              onChange={(e) => setIssueData({ ...issueData, bookId: e.target.value })}
               className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-900 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
-            />
+            >
+              <option value="">-- Select a book --</option>
+              {books?.filter(book => book.copiesAvailable > 0).map(book => (
+                <option key={book.id} value={book.id}>
+                  {book.title} by {book.author} (Available: {book.copiesAvailable})
+                </option>
+              ))}
+            </select>
           </div>
 
           <div>
             <label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">
-              User Name *
+              Select User *
             </label>
-            <input
-              type="text"
+            <select
               required
-              value={issueData.userName}
-              onChange={(e) => setIssueData({ ...issueData, userName: e.target.value })}
-              placeholder="Enter user name"
+              value={issueData.userId}
+              onChange={(e) => setIssueData({ ...issueData, userId: e.target.value })}
               className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-900 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
-            />
+            >
+              <option value="">-- Select a user --</option>
+              {users?.filter(user => user.status === 'Active').map(user => (
+                <option key={user.id} value={user.id}>
+                  {user.name} ({user.role}) - {user.email}
+                </option>
+              ))}
+            </select>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">
-                Borrow Date *
-              </label>
-              <input
-                type="date"
-                required
-                value={issueData.borrowDate}
-                onChange={(e) => setIssueData({ ...issueData, borrowDate: e.target.value })}
-                className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-900 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
-              />
-            </div>
-
-            <div>
-              <label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">
-                Due Date *
-              </label>
-              <input
-                type="date"
-                required
-                value={issueData.dueDate}
-                onChange={(e) => setIssueData({ ...issueData, dueDate: e.target.value })}
-                className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-900 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
-              />
-            </div>
+          <div className="rounded-lg bg-blue-50 p-3 dark:bg-blue-900/20">
+            <p className="text-sm text-blue-800 dark:text-blue-300">
+              ℹ️ The book will be automatically assigned a 14-day due date from today.
+            </p>
           </div>
 
           <div className="flex justify-end gap-3 pt-4">

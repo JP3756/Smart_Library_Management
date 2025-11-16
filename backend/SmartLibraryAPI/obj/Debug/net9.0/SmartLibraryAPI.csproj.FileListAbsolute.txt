@@ -23,8 +23,6 @@ C:\smart_library\backend\SmartLibraryAPI\bin\Debug\net9.0\Microsoft.EntityFramew
 C:\smart_library\backend\SmartLibraryAPI\bin\Debug\net9.0\Microsoft.Extensions.DependencyModel.dll
 C:\smart_library\backend\SmartLibraryAPI\bin\Debug\net9.0\Microsoft.OpenApi.dll
 C:\smart_library\backend\SmartLibraryAPI\bin\Debug\net9.0\Mono.TextTemplating.dll
-C:\smart_library\backend\SmartLibraryAPI\bin\Debug\net9.0\Npgsql.dll
-C:\smart_library\backend\SmartLibraryAPI\bin\Debug\net9.0\Npgsql.EntityFrameworkCore.PostgreSQL.dll
 C:\smart_library\backend\SmartLibraryAPI\bin\Debug\net9.0\Swashbuckle.AspNetCore.Swagger.dll
 C:\smart_library\backend\SmartLibraryAPI\bin\Debug\net9.0\Swashbuckle.AspNetCore.SwaggerGen.dll
 C:\smart_library\backend\SmartLibraryAPI\bin\Debug\net9.0\Swashbuckle.AspNetCore.SwaggerUI.dll
@@ -122,3 +120,5 @@ C:\smart_library\backend\SmartLibraryAPI\obj\Debug\net9.0\refint\SmartLibraryAPI
 C:\smart_library\backend\SmartLibraryAPI\obj\Debug\net9.0\SmartLibraryAPI.pdb
 C:\smart_library\backend\SmartLibraryAPI\obj\Debug\net9.0\SmartLibraryAPI.genruntimeconfig.cache
 C:\smart_library\backend\SmartLibraryAPI\obj\Debug\net9.0\ref\SmartLibraryAPI.dll
+C:\smart_library\backend\SmartLibraryAPI\bin\Debug\net9.0\Npgsql.dll
+C:\smart_library\backend\SmartLibraryAPI\bin\Debug\net9.0\Npgsql.EntityFrameworkCore.PostgreSQL.dll

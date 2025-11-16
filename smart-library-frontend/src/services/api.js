@@ -253,50 +253,137 @@ export const mockReportStats = {
 // Auth
 export const authAPI = {
   login: async (credentials) => {
-    // Mock login - replace with real API call
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        if (credentials.email && credentials.password) {
-          const mockToken = 'mock-jwt-token-' + Date.now();
-          const mockUser = {
-            id: 1,
-            name: 'Librarian Admin',
-            email: credentials.email,
-            role: 'Librarian',
-          };
-          resolve({ data: { token: mockToken, user: mockUser } });
-        } else {
-          throw new Error('Invalid credentials');
-        }
-      }, 1000);
-    });
+    try {
+      const response = await api.post('/auth/login', {
+        email: credentials.email,
+        password: credentials.password || '' // Password not required in simple auth
+      });
+      return response;
+    } catch (error) {
+      console.error('Login error:', error);
+      throw error;
+    }
   },
+  
   logout: () => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
+  },
+  
+  getCurrentUser: async () => {
+    return api.get('/auth/me');
+  },
+  
+  // Development helper - get list of available test users
+  getUsersList: async () => {
+    return api.get('/auth/users-list');
   },
 };
 
 // Books
 export const booksAPI = {
   getAll: async (params) => {
-    const queryParams = new URLSearchParams();
-    if (params?.search) queryParams.append('search', params.search);
-    if (params?.category && params.category !== 'All') queryParams.append('category', params.category);
-    if (params?.status && params.status !== 'All') queryParams.append('status', params.status);
-    
-    const url = queryParams.toString() ? `/books?${queryParams}` : '/books';
-    return api.get(url);
+    try {
+      let url = '/books';
+      
+      // Priority: search > category > status
+      // Note: Backend doesn't support combined filters, so we fetch and filter client-side
+      if (params?.search && params.search.trim()) {
+        url = `/books/search?query=${encodeURIComponent(params.search.trim())}`;
+      } else if (params?.category && params.category !== 'All') {
+        url = `/books/category/${encodeURIComponent(params.category)}`;
+      } else if (params?.status === 'Available') {
+        url = '/books/available';
+      }
+      
+      const response = await api.get(url);
+      
+      // Handle OData-style response with "value" wrapper
+      let booksData = Array.isArray(response.data) ? response.data : (response.data.value || []);
+      
+      // Map backend response to frontend format
+      let books = booksData.map(book => ({
+        id: book.id,
+        title: book.title,
+        author: book.author,
+        isbn: book.isbn,
+        category: book.category,
+        status: book.availableCopies > 0 ? 'Available' : 'Out of Stock',
+        publishedYear: book.publicationYear,
+        copiesAvailable: book.availableCopies,
+        totalCopies: book.totalCopies,
+        publisher: book.publisher,
+        description: book.description,
+      }));
+      
+      // Apply client-side filters if search was used but other filters are set
+      if (params?.search && params.search.trim()) {
+        // Apply category filter
+        if (params?.category && params.category !== 'All') {
+          books = books.filter(book => book.category === params.category);
+        }
+        // Apply status filter
+        if (params?.status && params.status !== 'All') {
+          books = books.filter(book => book.status === params.status);
+        }
+      }
+      
+      return { data: books };
+    } catch (error) {
+      console.error('Books API Error:', error);
+      throw error;
+    }
   },
+  
   getById: async (id) => {
-    return api.get(`/books/${id}`);
+    const response = await api.get(`/books/${id}`);
+    const book = response.data;
+    return {
+      data: {
+        id: book.id,
+        title: book.title,
+        author: book.author,
+        isbn: book.isbn,
+        category: book.category,
+        status: book.availableCopies > 0 ? 'Available' : 'Out of Stock',
+        publishedYear: book.publicationYear,
+        copiesAvailable: book.availableCopies,
+        totalCopies: book.totalCopies,
+        publisher: book.publisher,
+        description: book.description,
+      }
+    };
   },
+  
   create: async (bookData) => {
-    return api.post('/books', bookData);
+    // Map frontend data to backend DTO
+    const createDto = {
+      isbn: bookData.isbn,
+      title: bookData.title,
+      author: bookData.author,
+      publisher: bookData.publisher || 'Unknown Publisher',
+      publicationYear: parseInt(bookData.publicationYear) || new Date().getFullYear(),
+      category: bookData.category,
+      description: bookData.description || '',
+      totalCopies: parseInt(bookData.totalCopies) || 1,
+    };
+    return api.post('/books', createDto);
   },
+  
   update: async (id, bookData) => {
-    return api.put(`/books/${id}`, bookData);
+    // Map frontend data to backend UpdateBookDto
+    const updateDto = {
+      title: bookData.title,
+      author: bookData.author,
+      publisher: bookData.publisher,
+      publicationYear: parseInt(bookData.publicationYear),
+      category: bookData.category,
+      description: bookData.description,
+      totalCopies: parseInt(bookData.totalCopies),
+    };
+    return api.put(`/books/${id}`, updateDto);
   },
+  
   delete: async (id) => {
     return api.delete(`/books/${id}`);
   },
@@ -305,52 +392,236 @@ export const booksAPI = {
 // Users
 export const usersAPI = {
   getAll: async (params) => {
-    const queryParams = new URLSearchParams();
-    if (params?.search) queryParams.append('search', params.search);
-    if (params?.role && params.role !== 'All') queryParams.append('type', params.role);
-    
-    const url = queryParams.toString() ? `/users?${queryParams}` : '/users';
-    return api.get(url);
+    try {
+      let url = '/users';
+      
+      // Priority: search > role filter
+      if (params?.search && params.search.trim()) {
+        url = `/users/search?query=${encodeURIComponent(params.search.trim())}`;
+      } else if (params?.role && params.role !== 'All') {
+        url = `/users/type/${params.role}`;
+      }
+      
+      const response = await api.get(url);
+      
+      // Handle OData-style response with "value" wrapper
+      let usersData = Array.isArray(response.data) ? response.data : (response.data.value || []);
+      
+      // Map backend response to frontend format
+      let users = usersData.map(user => ({
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        phone: user.phone,
+        role: user.type || user.userType, // Backend uses "type"
+        status: user.isActive ? 'Active' : 'Inactive',
+        membershipId: user.studentId || user.employeeId || `USR-${user.id}`,
+        booksIssued: user.booksIssued || 0,
+        maxBorrowLimit: user.maxBorrowLimit,
+      }));
+      
+      // Apply client-side filters if search was used but role filter is set
+      if (params?.search && params.search.trim()) {
+        if (params?.role && params.role !== 'All') {
+          users = users.filter(user => user.role === params.role);
+        }
+      }
+      
+      return { data: users };
+    } catch (error) {
+      console.error('Users API Error:', error);
+      throw error;
+    }
   },
+  
   getById: async (id) => {
-    return api.get(`/users/${id}`);
+    const response = await api.get(`/users/${id}`);
+    const user = response.data;
+    return {
+      data: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        phone: user.phone,
+        role: user.type || user.userType,
+        membershipId: user.studentId || user.employeeId || `USER-${user.id}`,
+        status: user.isActive ? 'Active' : 'Inactive',
+        maxBorrowLimit: user.maxBorrowLimit,
+      }
+    };
   },
+  
   create: async (userData) => {
-    // Map frontend fields to backend DTO
+    // Map frontend fields to backend CreateUserDto
     const createDto = {
       name: userData.name,
       email: userData.email,
+      phone: userData.phone || null,
       type: userData.role, // Backend expects "type" (Student/Faculty)
       studentId: userData.role === 'Student' ? userData.membershipId : null,
+      enrollmentYear: userData.role === 'Student' ? new Date().getFullYear() : null,
       employeeId: userData.role === 'Faculty' ? userData.membershipId : null,
+      department: userData.role === 'Faculty' ? (userData.department || 'General') : null,
     };
     return api.post('/users', createDto);
+  },
+  
+  update: async (id, userData) => {
+    const updateDto = {
+      name: userData.name,
+      email: userData.email,
+      phone: userData.phone,
+      isActive: userData.status === 'Active',
+    };
+    return api.put(`/users/${id}`, updateDto);
+  },
+  
+  delete: async (id) => {
+    return api.delete(`/users/${id}`);
   },
 };
 
 // Borrow/Return
 export const borrowAPI = {
   getAll: async () => {
-    return api.get('/loans');
+    try {
+      const response = await api.get('/loans');
+      
+      // Map backend loan response to frontend format
+      const loans = response.data.map(loan => ({
+        id: loan.id,
+        bookId: loan.bookId,
+        userId: loan.userId,
+        bookTitle: loan.bookTitle || 'Unknown Book',
+        userName: loan.userName || 'Unknown User',
+        borrowDate: loan.borrowDate,
+        dueDate: loan.dueDate,
+        returnDate: loan.returnDate,
+        status: loan.status === 0 ? 'Active' : loan.status === 1 ? 'Returned' : 'Overdue',
+        fine: loan.fine || 0,
+        daysOverdue: loan.daysOverdue || 0,
+      }));
+      
+      return { data: loans };
+    } catch (error) {
+      console.error('Loans API Error:', error);
+      throw error;
+    }
   },
+  
+  getActive: async () => {
+    try {
+      const response = await api.get('/loans/active');
+      return { data: response.data };
+    } catch (error) {
+      console.error('Active Loans API Error:', error);
+      throw error;
+    }
+  },
+  
+  getOverdue: async () => {
+    try {
+      const response = await api.get('/loans/overdue');
+      return { data: response.data };
+    } catch (error) {
+      console.error('Overdue Loans API Error:', error);
+      throw error;
+    }
+  },
+  
   borrowBook: async (data) => {
-    // Map to backend CreateLoanDto
+    // Map to backend CreateLoanDto - expects bookId and userId
     const createDto = {
-      bookId: data.bookId,
-      userId: data.userId,
-      dueDate: data.dueDate,
+      bookId: parseInt(data.bookId),
+      userId: parseInt(data.userId),
     };
     return api.post('/loans', createDto);
   },
+  
   returnBook: async (id) => {
     return api.post(`/loans/${id}/return`);
+  },
+  
+  deleteLoan: async (id) => {
+    return api.delete(`/loans/${id}`);
   },
 };
 
 // Reports
 export const reportsAPI = {
   getStats: async () => {
-    return api.get('/reports/statistics');
+    try {
+      const response = await api.get('/reports/stats');
+      
+      // Map backend statistics to frontend format
+      return {
+        data: {
+          totalBooks: response.data.totalBooks || 0,
+          booksIssued: response.data.activeLoans || 0,
+          booksAvailable: response.data.totalBooks - response.data.activeLoans || 0,
+          totalUsers: response.data.totalUsers || 0,
+          activeLoans: response.data.activeLoans || 0,
+          overdueBooks: response.data.overdueLoans || 0,
+          totalFines: response.data.pendingFines || 0,
+          newMembersThisMonth: 0,
+        }
+      };
+    } catch (error) {
+      console.error('Reports API Error:', error);
+      // Return fallback data
+      return {
+        data: {
+          totalBooks: 0,
+          booksIssued: 0,
+          booksAvailable: 0,
+          totalUsers: 0,
+          activeLoans: 0,
+          overdueBooks: 0,
+          totalFines: 0,
+          newMembersThisMonth: 0,
+        }
+      };
+    }
+  },
+  
+  getBorrowingReport: async () => {
+    try {
+      const response = await api.get('/reports/borrowing');
+      return { data: response.data };
+    } catch (error) {
+      console.error('Borrowing Report Error:', error);
+      return { data: [] };
+    }
+  },
+  
+  getBooksByCategory: async () => {
+    try {
+      const response = await api.get('/reports/books-by-category');
+      return { data: response.data };
+    } catch (error) {
+      console.error('Books by Category Error:', error);
+      return { data: [] };
+    }
+  },
+  
+  getUserStatistics: async () => {
+    try {
+      const response = await api.get('/reports/user-statistics');
+      return { data: response.data };
+    } catch (error) {
+      console.error('User Statistics Error:', error);
+      return { data: [] };
+    }
+  },
+  
+  getFinesReport: async () => {
+    try {
+      const response = await api.get('/reports/fines');
+      return { data: response.data };
+    } catch (error) {
+      console.error('Fines Report Error:', error);
+      return { data: [] };
+    }
   },
 };
 
